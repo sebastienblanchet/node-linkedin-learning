@@ -11,7 +11,6 @@ app.use(bodyParser.urlencoded({
   extended: false
 }))
 
-// default ES6 promises
 mongoose.Promise = Promise
 
 var dbUrl = 'mongodb://user:user@ds155424.mlab.com:55424/learning-node'
@@ -27,28 +26,32 @@ app.get('/messages', (req, res) => {
   })
 })
 
-// define this post as async
 app.post('/messages', async (req, res) => {
-  var message = new Message(req.body)
 
-  // dont block on the following calls
-  var savedMessage = await message.save()
+  // nothing new here
+  try {
+    var message = new Message(req.body)
 
-  console.log('saved')
+    var savedMessage = await message.save()
 
-  var censored = await Message.findOne({
-    message: 'badword'
-  })
+    console.log('saved')
 
-  if (censored)
-    // some async stuff
-    await Message.remove({
-      _id: censored.id
+    var censored = await Message.findOne({
+      message: 'badword'
     })
-  else
-    io.emit('message', req.body)
 
-  res.sendStatus(200)
+    if (censored)
+      await Message.remove({
+        _id: censored.id
+      })
+    else
+      io.emit('message', req.body)
+
+    res.sendStatus(200)
+  } catch (error) {
+    res.sendStatus(500)
+    return console.error(error)
+  }
 })
 
 io.on('connection', (socket) => {
