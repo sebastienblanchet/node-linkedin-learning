@@ -28,8 +28,8 @@ app.get('/messages', (req, res) => {
 
 app.post('/messages', async (req, res) => {
 
-  // nothing new here
   try {
+    throw 'error'
     var message = new Message(req.body)
 
     var savedMessage = await message.save()
@@ -51,8 +51,13 @@ app.post('/messages', async (req, res) => {
   } catch (error) {
     res.sendStatus(500)
     return console.error(error)
+    // always called wether or not each was called
+  } finally {
+    console.log('message post called')
   }
 })
+
+
 
 io.on('connection', (socket) => {
   console.log('a user connected')
