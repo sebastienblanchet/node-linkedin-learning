@@ -5,27 +5,16 @@ var http = require('http').Server(app)
 var io = require('socket.io')(http)
 var mongoose = require('mongoose')
 
-var cors = require('cors')
-app.use(cors);
 app.use(express.static(__dirname))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({
   extended: false
 }))
 
+mongoose.Promise = Promise
 
-// todo get this from mlab, now atlas
-var dbUrl = 'mongodb+srv://URL'
+var dbUrl = 'mongodb://user:user@ds155424.mlab.com:55424/learning-node'
 
-var messages = [{
-    name: 'Tim',
-    message: 'Hi'
-  },
-  {
-    name: 'Jane',
-    message: 'Hello'
-  }
-]
 var Message = mongoose.model('Message', {
   name: String,
   message: String
@@ -40,15 +29,32 @@ app.get('/messages', (req, res) => {
 app.post('/messages', (req, res) => {
   var message = new Message(req.body)
 
-  message.save((err) => {
-    if (err)
-      sendStatus(500)
-
-    io.emit('message', req.body)
-    res.sendStatus(200)
-  })
+  message.save()
+    .then(() => {
+      console.log('saved')
+      return Message.findOne({
+        message: 'badword'
+      })
+    })
+    // basic promises easy
+    .then(censored => {
+      if (censored) {
+        console.log('censored words found', censored)
+        return Message.remove({
+          _id: censored.id
+        })
+      }
+      io.emit('message', req.body)
+      res.sendStatus(200)
+    })
+    .catch((err) => {
+      res.sendStatus(500)
+      return console.error(err)
+    })
 
 })
+
+
 
 io.on('connection', (socket) => {
   console.log('a user connected')
