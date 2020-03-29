@@ -6,7 +6,8 @@
   integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js"
   integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
-<script src="/socket.io/socket.io.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"
+  integrity="sha256-bQmrZe4yPnQrLTY+1gYylfNMBuGfnT/HKsCGX+9Xuqo=" crossorigin="anonymous"></script>
 
 <div class="container">
   <br>
@@ -24,7 +25,6 @@
   </div>
 </div>
 <script>
-  // this is the polling which will connect to socket io on backend
   var socket = io()
   $(() => {
     $("#send").click(() => {
@@ -37,13 +37,16 @@
     getMessages()
   })
 
-  function addMessages(message) {
+  // check for message event
+  socket.on('message', addMessage)
+
+  function addMessage(message) {
     $("#messages").append(`<h4> ${message.name} </h4> <p> ${message.message} </p>`)
   }
 
   function getMessages() {
     $.get('http://localhost:3000/messages', (data) => {
-      data.forEach(addMessages);
+      data.forEach(addMessage);
     })
   }
 
